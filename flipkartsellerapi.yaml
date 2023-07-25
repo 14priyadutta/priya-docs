@@ -1,0 +1,318 @@
+openapi: 3.0.0
+info:
+  title: Listing Management API Reference For Flipkart Marketplace
+  description: |
+    The Listing APIs enable a seller to create product listings and to check / update different listing attributes. You can make the following API calls for a single listing or in a batch
+    - Create listings
+    - Get and update stock count at location level
+    - Get and update listing attributes like Selling price, MRP, Shipping fee (local, zonal, national), procurement SLA, procurement type, HSN code, shipping provider.
+    - Activate or deactivate listing at location level
+  contact:
+    name: Priya Dutta
+    email: 14priya.dutta@gmail.com
+    url: https://seller.flipkart.com/api-docs/listing-api-docs/LMAPIRef.html
+  license:
+    name: GPL
+    url: http://practice.api.priya.com
+  version: 1.0.0
+servers:
+  - url: https://dev-seller.flipkart.com
+  - url: https://seller.flipkart.com
+paths:
+  /listing/v3:
+    post:
+      summary: Update product listings in Flipkart’s Marketplace.
+      description: |
+        This call updates listings against the specified SKUs. If the SKU doesn’t exist in the system, then an error will be returned against the SKU. The values that the listing attributes can take can change with time and selling constructs. It is recommended to explicitly handle errors and warnings returned by this API.
+
+        In addition to the authorization header, which is required for all Flipkart REST API calls, the following table includes additional headers required by this call:
+        
+        ## Required Header
+
+        | Header  | Description  | Required  |Allowed Values |
+        |-----------|-----------|------------|---------------|
+        |Content-Type|The MIME type of the body of the request. Must be JSON |Yes|application/json; charset=utf-8|
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Product id:
+                  type: string
+                  example: abc12
+                price:
+                  type: object
+                  properties: 
+                    mrp: 
+                      type: number
+                      format: double
+                      example: 0.00
+                    selling price:
+                      type: number
+                      format: double
+                      example: 0.00
+                    currency: 
+                      type: string
+                      example: INR
+                listing status:
+                  type: string
+                  example: ACTIVE|INACTIVE
+                packages:
+                  type: array
+                  items: 
+                    type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: lmn
+                      handling: 
+                        type: object
+                        properties: 
+                          fragile:
+                            type: boolean
+      responses: 
+        200:
+          description: Success. Individual SKUs may have failed. The status field has to be tested to determine the actual result.
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sku:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: success|failure|warning
+                      error:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            severity:
+                              type: string
+                              example: ERROR|WARNING
+                            code:
+                              type: string
+                              example: <code>
+                            description:
+                              type: string
+                              example: <description>
+        400:
+          description: Bad request.
+        500:
+          description: Internal server error.
+  /listing/v3/{sku-ids}:
+    get:
+      summary: Retrieve the information listed against the provided SKU Ids.
+      description: |
+        This call fetches the information listed against the specified SKUs. If the SKU does not exist in the system, then it will be identified in the unavailable field in the response.
+        
+        The authorization header is mandatory to access this API along with all other Flipkart Seller APIs.
+        
+        ## Request prameter descriptions
+        
+        | Parameter | Type | Occurence | Description |
+        |-----------|-----------|------------|---------------|
+        | sku-ids | String | Mandatory | Comma-seperated list of SKU Ids. Maximum per call:10 |
+      parameters: 
+        - in: path
+          name: sku-ids
+          required: true
+          schema: 
+            type: integer
+      responses:
+        200:
+          description: Success.
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: object
+                    properties:
+                      sku:
+                        type: object
+                        properties:
+                          listing_id:
+                            type: string
+                            example: <flipkart-system-identifier>
+                          product_id:
+                            type: string
+                            example: <flipkart-product-identifier>
+                          price:
+                            type: object
+                            properties:
+                              mrp:
+                                type: number
+                                format: double
+                                example: 3.54
+                              flipkart_selling_price:
+                                type: number
+                                format: double
+                                example: 3.45
+                              currency:
+                                type: string
+                                example: INR
+                          packages:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  example: <flipkart-system-identifier>
+                                name:
+                                  type: string
+                                  example: <priya>
+                                dimensions:
+                                  type: object
+                                  properties:
+                                    length:
+                                      type: integer
+                                      format: double
+                                      example: 1
+                                    breadth:
+                                      type: integer
+                                      format: double
+                                      example: 1
+                                    height:
+                                      type: integer
+                                      format: double
+                                      example: 1
+                                weight:
+                                  type: integer
+                                  format: double
+                                  example: 1
+                                description:
+                                  type: string
+                                  example: <description>
+                                handling:
+                                  type: object
+                                  properties:
+                                    fragile:
+                                      type: boolean
+                                notional value:
+                                  type: object
+                                  properties:
+                                    amount:
+                                      type: number
+                                      format: double
+                                      example: 300
+                                    unit:
+                                      type: string
+                                      example: PERCENTAGE|<CURRENCY>
+                          locations:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  example: <location-id>
+                                status:
+                                  type: string
+                                  example: ENABLED|DISABLED
+                                inventory:
+                                  type: integer
+                                  format: double
+                                  example: 23
+                          address_label:
+                            type: object
+                            properties:
+                              manufacturer_details:
+                                type: array
+                                items:
+                                  type: string
+                                  example: <address_of_manufacturer>
+                              importer_details:
+                                type: array
+                                items:
+                                  type: string
+                                  example: <address_of_importer>
+                              packer_details:
+                                type: array
+                                items:
+                                  type: string
+                                  example: <address_of_packer>
+                              countries_of_origin:
+                                type: array
+                                items:
+                                  type: string
+                                  example: <iso_alpha2_code_of_country_of_origin>
+                          dating_label:
+                            type: object
+                            properties: 
+                              mfg_date:
+                                type: string
+                                example: <Manufacturing date of the product in linux EPOCH (Seconds)>
+                              shelf_life:
+                                type: string
+                                example: <Expiry date of the product in linux EPOCH (Seconds)>
+                          archieved_status:
+                            type: string
+                            example: "ARCHIVED|NONE"
+                      orders_to_be_fulfilled:
+                        type: integer
+                        example: 0
+                  unavailable:
+                    type: array
+                    items:
+                      type: string
+                      example:
+                      - <sku1>
+                      - <sku2>
+                  invalid:
+                    type: array
+                    items: 
+                      type: string
+                      example: <sku>
+        400:
+          description: bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties: 
+                        severity:
+                          type: string
+                          example: ERROR|WARNING
+                        code:
+                          type: string
+                          example: <code>
+                        description: 
+                          type: string
+                          example: <description>
+                        path:
+                          type: string
+                          example: <path-to-failed-json-node>
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items: 
+                      type: object  
+                      properties:
+                        severity:
+                          type: string
+                          example: ERROR|WARNING
+                        code:
+                          type: string
+                          example: <code>
+                        description:
+                          type: string
+                          example: <description>
+                      
+                
